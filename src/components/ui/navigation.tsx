@@ -25,6 +25,10 @@ export function Navigation() {
             <Users size={18} />
             Dashboard
           </a>
+          <a href="/gallery" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors">
+            <Palette size={18} />
+            Gallery
+          </a>
           
           {connected ? (
             <div className="flex items-center gap-3">

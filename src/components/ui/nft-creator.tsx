@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from 'react';
-import { Palette, Wand2, Download } from 'lucide-react';
+import { Palette, Wand2, Download, Eye } from 'lucide-react';
+import { useWallet } from './wallet-provider';
 
 export function NFTCreator() {
+  const { publicKey } = useWallet();
   const [prompt, setPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [minting, setMinting] = useState(false);
 
   const generateNFT = async () => {
     if (!prompt.trim()) return;
@@ -32,23 +35,48 @@ export function NFTCreator() {
   };
 
   const mintNFT = async () => {
-    if (!generatedImage) return;
+    if (!generatedImage || !publicKey) return;
     
+    setMinting(true);
     try {
-      const response = await fetch('/api/mint', {
+      const nftName = `CONSILIENCE NFT #${Date.now()}`;
+      
+      // Mint NFT
+      const mintResponse = await fetch('/api/mint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           imageUrl: generatedImage,
           prompt,
-          name: `CONSILIENCE NFT #${Date.now()}`
+          name: nftName
         })
       });
       
-      const data = await response.json();
-      alert(`NFT minted! Transaction: ${data.signature}`);
+      const mintData = await mintResponse.json();
+      
+      // Store in gallery
+      await fetch('/api/nfts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: publicKey,
+          nft: {
+            name: nftName,
+            image: generatedImage,
+            description: prompt
+          }
+        })
+      });
+      
+      alert(`NFT minted and added to gallery! Transaction: ${mintData.signature}`);
+      
+      // Reset form
+      setGeneratedImage(null);
+      setPrompt('');
     } catch (error) {
       alert('Minting failed. Please try again.');
+    } finally {
+      setMinting(false);
     }
   };
 
@@ -99,13 +127,17 @@ export function NFTCreator() {
               <div className="flex gap-2">
                 <button
                   onClick={mintNFT}
-                  className="flex-1 py-2 bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30 transition-colors"
+                  disabled={minting}
+                  className="flex-1 py-2 bg-green-500/20 text-green-300 rounded-lg hover:bg-green-500/30 transition-colors disabled:opacity-50"
                 >
-                  Mint to Solana
+                  {minting ? 'Minting...' : 'Mint to Solana'}
                 </button>
                 <button className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                   <Download size={18} className="text-white/60" />
                 </button>
+                <a href="/gallery" className="p-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-lg transition-colors">
+                  <Eye size={18} className="text-purple-300" />
+                </a>
               </div>
             </div>
           </div>
