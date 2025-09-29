@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Coins } from 'lucide-react';
+import { useWallet } from './wallet-provider';
 
 interface Message {
   id: string;
@@ -11,6 +12,7 @@ interface Message {
 }
 
 export function AIChat() {
+  const { publicKey } = useWallet();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -51,6 +53,35 @@ export function AIChat() {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, aiResponse]);
+      
+      // Handle AI actions
+      if (data.action === 'create_token' && data.tokenData && publicKey) {
+        // Create the token
+        try {
+          const tokenResponse = await fetch('/api/create-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...data.tokenData,
+              wallet: publicKey
+            })
+          });
+          
+          const tokenResult = await tokenResponse.json();
+          
+          if (tokenResult.success) {
+            const successMessage: Message = {
+              id: (Date.now() + 2).toString(),
+              text: `✅ Success! Created ${tokenResult.token.supply} ${tokenResult.token.name} tokens (${tokenResult.token.symbol})!\n\nMint Address: ${tokenResult.token.mintAddress}\nTransaction: ${tokenResult.token.signature}\n\nView on Solana Explorer: ${tokenResult.explorerUrl}`,
+              sender: 'ai',
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, successMessage]);
+          }
+        } catch (error) {
+          console.error('Token creation failed:', error);
+        }
+      }
     } catch (error) {
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),

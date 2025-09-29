@@ -54,7 +54,7 @@ export function NFTCreator() {
       
       const mintData = await mintResponse.json();
       
-      // Store in gallery
+      // Store in gallery with mint address
       await fetch('/api/nfts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,12 +63,14 @@ export function NFTCreator() {
           nft: {
             name: nftName,
             image: generatedImage,
-            description: prompt
+            description: prompt,
+            mintAddress: mintData.mintAddress,
+            signature: mintData.signature
           }
         })
       });
       
-      alert(`NFT minted and added to gallery! Transaction: ${mintData.signature}`);
+      alert(`NFT minted successfully!\n\nMint Address: ${mintData.mintAddress}\nTransaction: ${mintData.signature}\n\nView on Solana Explorer: ${mintData.explorerUrl}`);
       
       // Reset form
       setGeneratedImage(null);

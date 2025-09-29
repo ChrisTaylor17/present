@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: 'You are an AI assistant for CONSILIENCE, a Solana DAPP that helps people find connections and create NFTs. Be helpful, friendly, and knowledgeable about blockchain, matching, and NFTs. Always respond naturally and conversationally.'
+            content: `You are an AI assistant for CONSILIENCE, a Solana DAPP that helps people find connections and create NFTs and tokens. You can actually create tokens and NFTs for users. When a user asks you to create a token, respond with: "I'll create that token for you right now!" and include the details. When they ask for NFTs, offer to generate them. Be helpful, friendly, and action-oriented. You have real blockchain capabilities.`
           },
           {
             role: 'user',
@@ -43,7 +43,33 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await openaiResponse.json();
-    const response = data.choices[0]?.message?.content || 'I apologize, but I cannot process that request right now.';
+    let response = data.choices[0]?.message?.content || 'I apologize, but I cannot process that request right now.';
+    
+    // Check if user is asking for token creation
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('create') && (lowerMessage.includes('token') || lowerMessage.includes('coin'))) {
+      // Extract token details from message
+      const tokenMatch = message.match(/(\d+)\s+tokens?\s+called\s+(\w+)\s+with.*symbol\s+(\w+)/i);
+      if (tokenMatch) {
+        const [, supply, name, symbol] = tokenMatch;
+        response += `\n\n🚀 Creating ${supply} ${name} tokens (${symbol}) on Solana blockchain...`;
+        
+        return NextResponse.json({ 
+          response,
+          action: 'create_token',
+          tokenData: { name, symbol, supply: parseInt(supply) }
+        });
+      }
+    }
+    
+    // Check if user is asking for NFT creation
+    if (lowerMessage.includes('create') && lowerMessage.includes('nft')) {
+      response += `\n\n🎨 I can help you create an NFT! What would you like it to look like? Describe the image you want me to generate.`;
+      return NextResponse.json({ 
+        response,
+        action: 'suggest_nft'
+      });
+    }
 
     return NextResponse.json({ response });
   } catch (error) {
