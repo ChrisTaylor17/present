@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Keypair } from '@solana/web3.js';
+import { createRealNFT } from '@/lib/solana-mint';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,20 +16,15 @@ export async function POST(request: NextRequest) {
       ]
     };
     
-    // Simulate NFT minting with realistic data
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Generate realistic mint address and transaction signature
-    const mintKeypair = Keypair.generate();
-    const mintAddress = mintKeypair.publicKey.toString();
-    const signature = Keypair.generate().publicKey.toString().slice(0, 44);
+    // Create real NFT on Solana devnet
+    const nftResult = await createRealNFT(metadata);
     
     return NextResponse.json({ 
       success: true, 
-      signature,
-      mintAddress,
+      signature: nftResult.signature,
+      mintAddress: nftResult.mintAddress,
       metadata,
-      explorerUrl: `https://explorer.solana.com/address/${mintAddress}?cluster=devnet`
+      explorerUrl: nftResult.explorerUrl
     });
   } catch (error) {
     console.error('Minting error:', error);
