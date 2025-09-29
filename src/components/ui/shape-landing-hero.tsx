@@ -190,6 +190,11 @@ function HeroGeometric({
                         <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
                             Find meaningful connections through AI matching, chat with AI assistance, and create NFTs on Solana blockchain.
                         </p>
+                        <div className="flex gap-4 justify-center">
+                            <a href="/dashboard" className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:opacity-90 transition-opacity">
+                                Enter DAPP
+                            </a>
+                        </div>
                     </motion.div>
                 </div>
             </div>
