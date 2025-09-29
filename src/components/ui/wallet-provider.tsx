@@ -1,33 +1,41 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { MockSolanaWallet } from '@/lib/solana';
 
 interface WalletContextType {
   connected: boolean;
   publicKey: string | null;
-  connect: () => void;
-  disconnect: () => void;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  wallet: MockSolanaWallet;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
+  const [wallet] = useState(() => new MockSolanaWallet());
   const [connected, setConnected] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
 
-  const connect = () => {
-    // Simulate wallet connection
-    setConnected(true);
-    setPublicKey('7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU');
+  const connect = async () => {
+    try {
+      await wallet.connect();
+      setConnected(wallet.connected);
+      setPublicKey(wallet.publicKey);
+    } catch (error) {
+      console.error('Wallet connection failed:', error);
+    }
   };
 
-  const disconnect = () => {
+  const disconnect = async () => {
+    await wallet.disconnect();
     setConnected(false);
     setPublicKey(null);
   };
 
   return (
-    <WalletContext.Provider value={{ connected, publicKey, connect, disconnect }}>
+    <WalletContext.Provider value={{ connected, publicKey, connect, disconnect, wallet }}>
       {children}
     </WalletContext.Provider>
   );

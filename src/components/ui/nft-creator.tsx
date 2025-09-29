@@ -13,18 +13,43 @@ export function NFTCreator() {
     
     setGenerating(true);
     
-    // Simulate AI generation
-    setTimeout(() => {
-      // Using a placeholder image service
-      const imageUrl = `https://picsum.photos/400/400?random=${Date.now()}`;
-      setGeneratedImage(imageUrl);
+    try {
+      const response = await fetch('/api/nft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      
+      const data = await response.json();
+      setGeneratedImage(data.imageUrl);
+    } catch (error) {
+      console.error('NFT generation failed:', error);
+      // Fallback to placeholder
+      setGeneratedImage(`https://picsum.photos/400/400?random=${Date.now()}`);
+    } finally {
       setGenerating(false);
-    }, 3000);
+    }
   };
 
-  const mintNFT = () => {
-    // Simulate minting to Solana
-    alert('NFT minted successfully to your wallet!');
+  const mintNFT = async () => {
+    if (!generatedImage) return;
+    
+    try {
+      const response = await fetch('/api/mint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          imageUrl: generatedImage,
+          prompt,
+          name: `CONSILIENCE NFT #${Date.now()}`
+        })
+      });
+      
+      const data = await response.json();
+      alert(`NFT minted! Transaction: ${data.signature}`);
+    } catch (error) {
+      alert('Minting failed. Please try again.');
+    }
   };
 
   return (

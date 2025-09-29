@@ -3,6 +3,7 @@
 import { AIChat } from '@/components/ui/ai-chat';
 import { AIMatching } from '@/components/ui/ai-matching';
 import { NFTCreator } from '@/components/ui/nft-creator';
+import { UserProfile } from '@/components/ui/user-profile';
 import { useWallet } from '@/components/ui/wallet-provider';
 
 export default function Dashboard() {
@@ -27,7 +28,11 @@ export default function Dashboard() {
           <p className="text-white/60">Manage your connections, chat with AI, and create NFTs</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="xl:col-span-1">
+            <UserProfile />
+          </div>
+          
           <div className="xl:col-span-1">
             <AIMatching />
           </div>
